@@ -1,50 +1,75 @@
-Assignement number #1
-=================
+Research Track 1 : Assignment Undertaken Number #1
+====================================================
 
-I uploaded on this repository my humble solution to the first assignement of Research Track 1 where we ask a robot in a some environement to drive itself and pick up a silver box and put it next a golden one, until all 6 pairs are done!
+## Aim Of The Assignment 
 
-### The Grabber
+On this repository, I have the privilege to sahre whith you my modest response to the Research Track's first assignment, wherein we tasked a robot to move autonomously around its environment and pick up a silver box afterwards deposite it next a golden one until all six pairings were completed.
 
-The robot has a grabber that can pick up a token that is in front of it and within 0.4 meters of its center. We invoke the "R.grab" method to grab a token. In the event that a token was successfully picked up, the "R.grab" method returns "True," else "False."
+
+## Our Grabber Robot
+
+When a token is placed in front of the robot and within 0.4 meters of its center, our robot, which contains a grabber, will grab this token using the "R.grab" function. If a token was successfully picked up, the "R.grab" function returns "True," or "False" in the opposite case.
+
 
 ```python
  R.grab()
 ```
-To release the token we use the method:
+In order to drop a token we use the method:
 
 ```python
  R.release()
 ```
 
-### Global variables:
+## The Global Variables:
 
 <br>a_th : The threshold for controlling the linear distance. </br>
 d_th : The threshold for controlling the orientation.
 
-<br> silverList = [] : List contains the codes of silver boxes.</br>
-goldenList = [] : List contains the codes of golden boxes.	
+<br> Silver_Codes = [] : list of silver tokens codes that are grabbed.</br>
+Golden_Codes = [] : list of golden tokens codes that are paired.	
 
-I created several functions to be used in the main function :
+In order to process the aimed task of our robot, each function created in our program has its speacial role to execute, and all together are used in the main function :
 
-### Drive and Turn functions:
+## Drive and Turn functions:
 
-These functions were kindly provided by the environement maker and are the same of exercise 1.
-
-### find_ungrabbed_silver_token:
-
-This function searches for silver tokens and checks if the token code is already stored in the Silver_Codes list, Which means that the token is already grabbed, so it doesn't grab it and look for another token.
+These two functions are mainly to control the behaviour of motors, they make our robot to drive forward with a fixed speed or Turning with a specific orientation and they were given by the environement maker.
 <pre>
-find_silver_token():
- 	dist=100
-	for token in R.see(): 
-		if token.dist < dist and token.info.marker_type is MARKER_TOKEN_SILVER and token.info.code not in Silver_Codes:
-			dist=token.dist
-			rot_y=token.rot_y
-			Token_Codes=token.info.code
-	if dist==100:
-		return -1, -1 ,-1
-	else:    
-		return dist, rot_y, Token_Codes
+def drive(speed, seconds):
+    R.motors[0].m0.power = speed
+    R.motors[0].m1.power = speed
+    time.sleep(seconds)
+    R.motors[0].m0.power = 0
+    R.motors[0].m1.power = 0
+    </pre>
+<pre>
+    def turn(speed, seconds):
+    R.motors[0].m0.power = speed
+    R.motors[0].m1.power = -speed
+    time.sleep(seconds)
+    R.motors[0].m0.power = 0
+    R.motors[0].m1.power = 0
+</pre>
+    
+## fetch_ungrabbed_silver_block:
+
+This function allows us to find the closest silver token and grabbing it. Meanwhile, it will never pick up an already taken silver token. In other words, this function has the role to look for a silver token and verify if it was grabbed before or not by checking the token code stored in the Silver_Codes list.  
+
+<pre>
+def fetch_ungrabbed_silver_block():
+    dist = 100
+    for token in R.see():
+        if (
+            token.dist < dist
+            and token.info.marker_type is MARKER_TOKEN_SILVER
+            and token.info.code not in Silver_Codes
+        ):
+            dist = token.dist
+            rot_y = token.rot_y
+            Token_Codes = token.info.code
+    if dist == 100:
+        return -1, -1, -1
+    else:
+        return dist, rot_y, Token_Codes
 </pre>
 
 The following line should be added to the previous if loop in order to display the grabbed box ID
@@ -52,73 +77,86 @@ The following line should be added to the previous if loop in order to display t
 print (MARKER_TOKEN_SILVER)
 </pre>
 
-### find_unpaired_golden_token:
+## fetch_unpaired_golden_block :
 
-This function searches for golden tokens and checks if the token code is already paired in the Golden_Codes list, which means that the token is already paired, so it looks for another golden token.
+This function allows us to find the closest unpaired golden tokens by checking if the token code is already paired in the Golden_Codes list. In case of a paired token, our robot will look for another golden token.
 <pre>
-dist=100
-	for token in R.see(): 
-		if token.dist < dist and token.info.marker_type is MARKER_TOKEN_GOLD and token.info.code not in Golden_Codes:
-			dist=token.dist
-			rot_y=token.rot_y
-			Token_Codes=token.info.code
-	if dist==100:
-		return -1, -1, -1
-	else:
-		
-		return dist, rot_y, Token_Codes
+def fetch_unpaired_golden_block():
+    dist = 100
+    for token in R.see():
+        if (
+            token.dist < dist
+            and token.info.marker_type is MARKER_TOKEN_GOLD
+            and token.info.code not in Golden_Codes
+        ):
+            dist = token.dist
+            rot_y = token.rot_y
+            Token_Codes = token.info.code
+    if dist == 100:
+        return -1, -1, -1
+    else:
+        return dist, rot_y, Token_Codes
 </pre>
 
-### Sign:
+## Sign:
 
 This function simply returns 1 for positive number and -1 for negative number.
 <pre>
 def sign(a):
-	if a < 0:
-		return -1
-	else:
-		return 1
+	return -1 if a < 0 else 1
 </pre>
 
-### put_silver_with_golden:
+## pair_silver_block_with_golden_block:
 
-This function is basically the main function, it combines all the previously mentioned functions and combine them in a way to make the robot do the "put silver with golden" six times (which is the number of silver and golden boxes) and print at the end task completed. 
+This is the main function of our code that combines all the above mentioned functions, it has the role to make our robot release silver token near to golden token six times (which is the number of silver and golden tokens) then ending the task when there is no silver token lef and printing at the end task completed. 
 <pre>
-while (len(Golden_Codes)<7):
-		dist, rot_y, Token_Codes = find_ungrabbed_silver_token() 
-		if dist==-1:
-		    turn(10,0.1)
-		    continue
-		while(dist<0):   
-			turn(-5,0.01)
-			dist, rot_y, Token_Codes = find_ungrabbed_silver_token()
-		while (rot_y >= a_th or rot_y<=-a_th) : 
-			turn(sign(rot_y-a_th) * 10,0.001) 
-			dist, rot_y,Token_Codes = find_ungrabbed_silver_token()
-		while (dist >= d_th) : 
-			drive(30,0.01)
-			dist, rot_y, Token_Codes = find_ungrabbed_silver_token()
-	    	Silver_Codes.append(Token_Codes)
-	    	print("Found you silver box number:",len(Silver_Codes))
-	    	R.grab()
-	    	turn(20,0.1)
-		print("Let's pair you with an unpaired golden box!")
-		dist, rot_y, Token_Codes = find_unpaired_golden_token()
-		while(dist<0):
-			turn(-5,0.01)
-			dist, rot_y, Token_Codes = find_unpaired_golden_token()
-	    	while (rot_y >= a_th or rot_y<=-a_th) :
-			turn(sign(rot_y-a_th) * 10,0.001)
-			dist, rot_y, Token_Codes= find_unpaired_golden_token()
-	    	while (dist >= 1.5*d_th) :
-			drive(40,0.01)
-			dist, rot_y, Token_Codes= find_unpaired_golden_token()
-	    	R.release()
-	    	Golden_Codes.append(Token_Codes)
-	    	print("Gotcha golden box number:",len(Golden_Codes))
-	    	drive(-50,0.8)
-		if (len(Golden_Codes)==6):
-			print("Task completed")
-			exit() 
+def pair_silver_block_with_golden_block():
+    while len(Golden_Codes) < 7:
+        dist, rot_y, Token_Codes = fetch_ungrabbed_silver_block()
+        if dist == -1:
+            turn(10, 0.1)
+            continue
+
+        while dist < 0:
+            turn(-5, 0.01)
+            dist, rot_y, Token_Codes = fetch_ungrabbed_silver_block()
+
+        while rot_y >= a_th or rot_y <= -a_th:
+            turn(sign(rot_y - a_th) * 10, 0.001)
+            dist, rot_y, Token_Codes = fetch_ungrabbed_silver_block()
+
+        while dist >= d_th:
+            drive(30, 0.01)
+            dist, rot_y, Token_Codes = fetch_ungrabbed_silver_block()
+
+        Silver_Codes.append(Token_Codes)
+        print("Found your silver box number:", len(Silver_Codes))
+        R.grab()
+        turn(20, 0.1)
+
+        print("Let's pair you with an unpaired golden box!")
+        dist, rot_y, Token_Codes = fetch_unpaired_golden_block()
+
+        while dist < 0:
+            turn(-5, 0.01)
+            dist, rot_y, Token_Codes = fetch_unpaired_golden_block()
+
+        while rot_y >= a_th or rot_y <= -a_th:
+            turn(sign(rot_y - a_th) * 10, 0.001)
+            dist, rot_y, Token_Codes = fetch_unpaired_golden_block()
+
+        while dist >= 1.5 * d_th:
+            drive(40, 0.01)
+            dist, rot_y, Token_Codes = fetch_unpaired_golden_block()
+
+        R.release()
+        Golden_Codes.append(Token_Codes)
+        print("Gotcha golden box number:", len(Golden_Codes))
+        drive(-50, 0.8)
+
+        if len(Golden_Codes) == 6:
+            print("Task completed")
+            exit()
+	    
 </pre>
 
