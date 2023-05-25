@@ -42,7 +42,7 @@ def drive(speed, seconds):
     R.motors[0].m1.power = 0
     </pre>
 <pre>
-    def turn(speed, seconds):
+def turn(speed, seconds):
     R.motors[0].m0.power = speed
     R.motors[0].m1.power = -speed
     time.sleep(seconds)
@@ -157,6 +157,7 @@ def pair_silver_block_with_golden_block():
         if len(Golden_Codes) == 6:
             print("Task completed")
             exit()
-	    
+
+pair_silver_block_with_golden_block()	    
 </pre>
 
